@@ -9,7 +9,7 @@ main : Program Never Model Msg
 main =
   Html.program
     { init = init {
-        serverAddress = "ws://hub.nechifor.net/"
+        serverAddress = "hub.nechifor.net"
       }
     , view = view
     , update = update

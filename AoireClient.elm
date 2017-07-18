@@ -16,12 +16,16 @@ type alias Server =
 
 connect : Server -> (String -> msg) -> Sub msg
 connect server msgType =
-  {--} Sub.none --}
-  {-- WebSocket.listen server.serverAddress msgType --}
+  {-- Sub.none --}
+  {--} WebSocket.listen (serverAddress server) msgType --}
 
 initServer : String -> Server
 initServer serverAddress =
   Server serverAddress
+
+serverAddress : Server -> String
+serverAddress server =
+  "ws://" ++ server.serverAddress ++ "/game"
 
 processMessage : Server -> String -> Server
 processMessage server message =
