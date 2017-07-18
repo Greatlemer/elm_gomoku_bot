@@ -1,6 +1,6 @@
 {
     "version": "0.0.1",
-    "summary": "Attempt at a bot (in Elm that can play on an aoire server (https://github.com/paul-nechifor/aoire))",
+    "summary": "Attempt at a bot in Elm to play on an aoire server (github paul-nechifor/aoire)",
     "repository": "https://github.com/user/project.git",
     "license": "BSD3",
     "source-directories": [
