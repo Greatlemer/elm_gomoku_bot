@@ -22,7 +22,8 @@ main =
 
 type alias Model =
   { board : Gomoku.Board
-  , currentPlayer : Gomoku.Player
+  , myToken : Int
+  , myColour : Gomoku.Player
   , gameServer : AoireClient.Server
   }
 
@@ -33,7 +34,7 @@ type alias Flags =
 
 init : Flags -> (Model, Cmd Msg)
 init {serverAddress} =
-  (Model Gomoku.newBoard Gomoku.starter (AoireClient.initServer serverAddress), Cmd.none)
+  (Model Gomoku.newBoard -1 Gomoku.Unallocated (AoireClient.initServer serverAddress), Cmd.none)
 
 
 -- UPDATE
@@ -44,29 +45,66 @@ type Msg
   | ServerMessage String
   | StartGame
 
+generateMove : Model -> (Model, Cmd Msg)
+generateMove model =
+  case GomokuBot.selectMove model.board model.myColour of
+    Position position ->
+      ( model
+      , AoireClient.playMove model.gameServer (ServerMessage) position
+      )
+    RandomPosition ->
+      (model, randomPosition model.board)
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     GenerateMove ->
-      case GomokuBot.selectMove model.board model.currentPlayer of
-        Position position ->
-          (playMove model position, Cmd.none)
-        RandomPosition ->
-          (model, randomPosition model.board)
+      generateMove model
     PlayRandomMoveIfEmpty potentialMove ->
       if Gomoku.isEmpty model.board potentialMove then
-        (playMove model potentialMove, Cmd.none)
+        ( model
+        , AoireClient.playMove model.gameServer (ServerMessage) potentialMove
+        )
       else
         (model, randomPosition model.board)
     ServerMessage msg ->
-      ( { model | gameServer = AoireClient.processMessage model.gameServer msg }
-      , Cmd.none
-      )
+      case AoireClient.processMessage msg of
+        AoireClient.AwaitingFirstMove tokenId ->
+          let
+            newModel = { model | board = Gomoku.newBoard }
+          in
+            if tokenId >= 0 && tokenId == model.myToken then
+              generateMove newModel
+            else
+              (newModel, Cmd.none)
+        AoireClient.TokenAllocated tokenId ->
+          case tokenId of
+            0 ->
+              ({ model | myToken = tokenId, myColour = Gomoku.Black}, Cmd.none)
+            1 ->
+              ({ model | myToken = tokenId, myColour = Gomoku.White}, Cmd.none)
+            _ ->
+              ({ model | myToken = tokenId, myColour = Gomoku.Unallocated}
+              , Cmd.none
+              )
+        AoireClient.TurnPlayed tokenId position ->
+          if tokenId >= 0 && tokenId == model.myToken then
+            (playMove model model.myColour position, Cmd.none)
+          else if tokenId >= 0 then
+            generateMove (playMove model (Gomoku.nextPlayer model.myColour) position)
+          else
+            (model, Cmd.none)
+        AoireClient.WinningMove tokenId position ->
+          if tokenId >= 0 && tokenId == model.myToken then
+            (playMove model model.myColour position, Cmd.none)
+          else if tokenId >= 0 then
+            (playMove model (Gomoku.nextPlayer model.myColour) position, Cmd.none)
+          else
+            (model, Cmd.none)
+        _ ->
+          (model, Cmd.none)
     StartGame ->
-      let
-        (server, cmd) = AoireClient.startGame model.gameServer ServerMessage
-      in
-        ({ model | gameServer = server }, cmd)
+      (model, AoireClient.startGame model.gameServer ServerMessage)
 
 
 -- SUBSCRIPTIONS
@@ -88,16 +126,9 @@ view {board} =
     
 -- Bot Interface
 
-playMove : Model -> Int -> Model
-playMove model position =
-  let
-    nextPlayer = Gomoku.nextPlayer model.currentPlayer
-    nextBoard = Gomoku.placeToken model.board model.currentPlayer position
-  in
-    { model |
-        board = nextBoard,
-        currentPlayer = nextPlayer
-    }
+playMove : Model -> Gomoku.Player -> Int -> Model
+playMove model player position =
+  { model | board = Gomoku.placeToken model.board player position }
 
 randomPosition : Gomoku.Board -> Cmd Msg
 randomPosition board =

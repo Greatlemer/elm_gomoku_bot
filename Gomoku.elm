@@ -1,4 +1,4 @@
-module Gomoku exposing (Board, Cell, isEmpty, maxPosition, newBoard, nextPlayer, placeToken, Player, starter, viewBoard)
+module Gomoku exposing (Board, Cell, isEmpty, maxPosition, newBoard, nextPlayer, placeToken, Player(..), starter, viewBoard)
 
 import Array exposing (Array)
 import Html exposing (Html)
@@ -10,11 +10,11 @@ import Random
 
 type Player
   = Black
+  | Unallocated
   | White
 
 type Cell
-  = Empty
-  | Token Player
+  = Token Player
   
 type alias Board =
   Array Cell
@@ -27,7 +27,7 @@ rows = 15
 
 isEmpty : Board -> Int -> Bool
 isEmpty board position =
-  Array.get position board == Just Empty
+  Array.get position board == Just (Token Unallocated)
 
 maxPosition : Int
 maxPosition =
@@ -35,13 +35,15 @@ maxPosition =
 
 newBoard : Board
 newBoard =
-  Array.repeat (columns * rows) Empty
+  Array.repeat (columns * rows) (Token Unallocated)
 
 nextPlayer : Player -> Player
 nextPlayer currentPlayer =
   case currentPlayer of
     Black ->
       White
+    Unallocated ->
+      Unallocated
     White ->
       Black
 
@@ -67,7 +69,7 @@ viewCell cell =
   case cell of
     Token Black ->
       Html.div [blackCellStyle] []
-    Empty ->
+    Token Unallocated ->
       Html.div [emptyCellStyle] []
     Token White ->
       Html.div [whiteCellStyle] []
