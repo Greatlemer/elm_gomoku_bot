@@ -25,6 +25,7 @@ type alias Model =
   , myToken : Int
   , myColour : Gomoku.Player
   , turnNumber : Int
+  , lastMove : Int
   , gameServer : AoireClient.Server
   }
 
@@ -35,7 +36,7 @@ type alias Flags =
 
 init : Flags -> (Model, Cmd Msg)
 init {serverAddress} =
-  (Model Gomoku.newBoard -1 Gomoku.Unallocated 1 (AoireClient.initServer serverAddress), Cmd.none)
+  (Model Gomoku.newBoard -1 Gomoku.Unallocated 1 -1 (AoireClient.initServer serverAddress), Cmd.none)
 
 
 -- UPDATE
@@ -121,9 +122,9 @@ subscriptions {gameServer} =
 -- VIEW
 
 view : Model -> Html Msg
-view {board} =
+view {board, lastMove} =
   div []
-    [ Gomoku.viewBoard board
+    [ Gomoku.viewBoard board lastMove
     , button [onClick StartGame] [text "Start Game"]
     , button [onClick GenerateMove] [text "Play Move"]
     ]
@@ -135,6 +136,7 @@ playMove model player position =
   { model
   | board = Gomoku.placeToken model.board player position model.turnNumber
   , turnNumber = model.turnNumber + 1
+  , lastMove = position
   }
 
 randomPosition : Gomoku.Board -> Cmd Msg

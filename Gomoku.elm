@@ -65,21 +65,21 @@ starter =
 
 -- HTML visuals
 
-viewBoard : Board -> Html msg
-viewBoard board =
+viewBoard : Board -> Int -> Html msg
+viewBoard board lastMove =
   Html.div [ boardStyle ] (Array.toList (
-    Array.map viewCell board
+    Array.indexedMap (viewCell lastMove) board
   ))
 
-viewCell : Cell -> Html msg
-viewCell (token, turn) =
+viewCell : Int -> Int -> Cell -> Html msg
+viewCell lastMove cellIndex (token, turn) =
   case token of
     Token Black ->
-      Html.div [blackCellStyle] [Html.text (toString turn)]
+      Html.div [blackCellStyle (lastMove == cellIndex)] [Html.text (toString turn)]
     Token Unallocated ->
       Html.div [emptyCellStyle] []
     Token White ->
-      Html.div [whiteCellStyle] [Html.text (toString turn)]
+      Html.div [whiteCellStyle (lastMove == cellIndex)] [Html.text (toString turn)]
 
 --   Styles
   
@@ -95,13 +95,20 @@ baseCellStyleOptions =
     , ("width", "40px")
     ]
   
-blackCellStyle : Html.Attribute msg
-blackCellStyle =
-  style (
-    [ ("backgroundColor", "black")
-    , ("color", "white")
-    ] ++ baseCellStyleOptions
-  )
+blackCellStyle : Bool -> Html.Attribute msg
+blackCellStyle wasLastMove =
+  let
+    colour =
+      if wasLastMove then
+        "red"
+      else
+        "white"
+  in
+    style (
+      [ ("backgroundColor", "black")
+      , ("color", colour)
+      ] ++ baseCellStyleOptions
+    )
 
 boardStyle : Html.Attribute msg
 boardStyle =
@@ -118,12 +125,19 @@ emptyCellStyle =
     ] ++ baseCellStyleOptions
   )
   
-whiteCellStyle : Html.Attribute msg
-whiteCellStyle =
-  style (
-    [ ("backgroundColor", "white")
-    , ("color", "black")
-    ] ++ baseCellStyleOptions
-  )
+whiteCellStyle : Bool -> Html.Attribute msg
+whiteCellStyle wasLastMove =
+  let
+    colour =
+      if wasLastMove then
+        "red"
+      else
+        "black"
+  in
+    style (
+      [ ("backgroundColor", "white")
+      , ("color", colour)
+      ] ++ baseCellStyleOptions
+    )
 
 -- Game
