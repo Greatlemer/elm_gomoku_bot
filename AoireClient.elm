@@ -1,5 +1,6 @@
 module AoireClient exposing (..)
 
+import Debug
 import Json.Encode exposing (encode, int, object, string)
 import WebSocket
 
@@ -29,7 +30,10 @@ serverAddress server =
 
 processMessage : Server -> String -> Server
 processMessage server message =
-  server
+  let
+    msg = Debug.log message
+  in
+    server
 
 encodeStartGameMessage : String -> String -> String -> Int -> String
 encodeStartGameMessage room botName gameType nGames =
