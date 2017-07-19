@@ -42,6 +42,7 @@ type Msg
   = GenerateMove
   | PlayRandomMoveIfEmpty Int
   | ServerMessage String
+  | StartGame
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -61,6 +62,11 @@ update msg model =
       ( { model | gameServer = AoireClient.processMessage model.gameServer msg }
       , Cmd.none
       )
+    StartGame ->
+      let
+        (server, cmd) = AoireClient.startGame model.gameServer ServerMessage
+      in
+        ({ model | gameServer = server }, cmd)
 
 
 -- SUBSCRIPTIONS
@@ -76,6 +82,7 @@ view : Model -> Html Msg
 view {board} =
   div []
     [ Gomoku.viewBoard board
+    , button [onClick StartGame] [text "Start Game"]
     , button [onClick GenerateMove] [text "Play Move"]
     ]
     

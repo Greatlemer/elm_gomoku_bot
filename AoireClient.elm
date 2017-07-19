@@ -31,9 +31,8 @@ processMessage : Server -> String -> Server
 processMessage server message =
   server
 
-{--
-encodeStartGameMessage : Server -> String
-encodeStartGameMessage {room, gameType, botName, nGames} =
+encodeStartGameMessage : String -> String -> String -> Int -> String
+encodeStartGameMessage room botName gameType nGames =
   encode 0 (
     object
       [ ("type", Json.Encode.string "StartGame")
@@ -43,6 +42,11 @@ encodeStartGameMessage {room, gameType, botName, nGames} =
       , ("nGames", Json.Encode.int nGames)
       ]
     )
---}
 
---      (Model (placeToken nextSquare board) (nextSquare + 1) token, WebSocket.send gameServer (encodeInitialMessage "Elm Bots ltd." "ElmBot v0.1 (by Adrian)" "gomoku" 1))
+startGame : Server -> (String -> msg) -> (Server, Cmd msg)
+startGame server msgType =
+  ( server
+  , WebSocket.send (serverAddress server) (encodeStartGameMessage "Elm Bots ltd." "ElmBot v0.1 (by Adrian)" "gomoku" 1)
+  )
+
+--      (Model (placeToken nextSquare board) (nextSquare + 1) token, WebSocket.send gameServer (encodeStartGameMessage "Elm Bots ltd." "ElmBot v0.1 (by Adrian)" "Gomoku" 1))
