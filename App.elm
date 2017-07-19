@@ -24,6 +24,7 @@ type alias Model =
   { board : Gomoku.Board
   , myToken : Int
   , myColour : Gomoku.Player
+  , turnNumber : Int
   , gameServer : AoireClient.Server
   }
 
@@ -34,7 +35,7 @@ type alias Flags =
 
 init : Flags -> (Model, Cmd Msg)
 init {serverAddress} =
-  (Model Gomoku.newBoard -1 Gomoku.Unallocated (AoireClient.initServer serverAddress), Cmd.none)
+  (Model Gomoku.newBoard -1 Gomoku.Unallocated 1 (AoireClient.initServer serverAddress), Cmd.none)
 
 
 -- UPDATE
@@ -71,7 +72,10 @@ update msg model =
       case AoireClient.processMessage msg of
         AoireClient.AwaitingFirstMove tokenId ->
           let
-            newModel = { model | board = Gomoku.newBoard }
+            newModel = { model
+                       | board = Gomoku.newBoard
+                       , turnNumber = 1
+                       }
           in
             if tokenId >= 0 && tokenId == model.myToken then
               generateMove newModel
@@ -128,7 +132,10 @@ view {board} =
 
 playMove : Model -> Gomoku.Player -> Int -> Model
 playMove model player position =
-  { model | board = Gomoku.placeToken model.board player position }
+  { model
+  | board = Gomoku.placeToken model.board player position model.turnNumber
+  , turnNumber = model.turnNumber + 1
+  }
 
 randomPosition : Gomoku.Board -> Cmd Msg
 randomPosition board =
