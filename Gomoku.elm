@@ -66,20 +66,34 @@ starter =
 -- HTML visuals
 
 viewBoard : Board -> Int -> Html msg
-viewBoard board lastMove =
+viewBoard board untilTurn =
   Html.div [ boardStyle ] (Array.toList (
-    Array.indexedMap (viewCell lastMove) board
+    Array.map (viewCell untilTurn) board
   ))
 
-viewCell : Int -> Int -> Cell -> Html msg
-viewCell lastMove cellIndex (token, turn) =
-  case token of
-    Token Black ->
-      Html.div [blackCellStyle (lastMove == cellIndex)] [Html.text (toString turn)]
-    Token Unallocated ->
-      Html.div [emptyCellStyle] []
-    Token White ->
-      Html.div [whiteCellStyle (lastMove == cellIndex)] [Html.text (toString turn)]
+viewCell : Int -> Cell -> Html msg
+viewCell untilTurn (token, turn) =
+  Html.div [cellStyle turn untilTurn token] [turnText turn untilTurn]
+
+cellStyle : Int -> Int -> CellContents -> Html.Attribute msg
+cellStyle turn maxTurn token =
+  if turn > maxTurn then
+    emptyCellStyle
+  else
+    case token of
+      Token Black ->
+        blackCellStyle (turn == maxTurn)
+      Token Unallocated ->
+        emptyCellStyle
+      Token White ->
+        whiteCellStyle (turn == maxTurn)
+
+turnText : Int -> Int -> Html msg
+turnText turn maxTurn =
+  if turn < 1 || turn > maxTurn then
+    Html.text ""
+  else
+    Html.text (toString turn)
 
 --   Styles
   
