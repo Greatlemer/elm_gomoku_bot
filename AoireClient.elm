@@ -87,9 +87,9 @@ encodeStartGameMessage room botName gameType nGames =
       ]
     )
 
-startGame : Server -> (String -> msg) -> Cmd msg
-startGame server msgType =
-  WebSocket.send (serverAddress server) (encodeStartGameMessage "Elm Bots ltd." "ElmBot v0.1 (by Adrian)" "Gomoku" 2)
+startGame : Server -> (String -> msg) -> String -> String -> Int -> Cmd msg
+startGame server msgType roomName botName numberOfGames =
+  WebSocket.send (serverAddress server) (encodeStartGameMessage roomName botName "Gomoku" numberOfGames)
 
 encodeMoveMessage : Int -> String
 encodeMoveMessage move =
